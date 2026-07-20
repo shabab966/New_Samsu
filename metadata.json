@@ -1,0 +1,6 @@
+{
+  "name": "Browser API Recorder & Marketplace",
+  "description": "Record manual web actions, save them as automated API endpoints, and execute workflows powered by Gemini AI data extraction.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

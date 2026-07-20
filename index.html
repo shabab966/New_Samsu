@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Google AI Studio App</title>
+    <script>
+      (function() {
+        // Prevent window.fetch only a getter crashes from bubbling up as uncaught errors
+        window.addEventListener('error', function(e) {
+          const msg = e.message || '';
+          if (msg.includes('fetch') || msg.includes('getter') || msg.includes('property fetch')) {
+            console.warn('Suppressing fetch getter error:', msg);
+            e.preventDefault();
+            e.stopPropagation();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(e) {
+          const reason = e.reason && e.reason.message || '';
+          if (reason.includes('fetch') || reason.includes('getter') || reason.includes('property fetch')) {
+            console.warn('Suppressing fetch getter unhandled promise rejection:', reason);
+            e.preventDefault();
+            e.stopPropagation();
+            return true;
+          }
+        }, true);
+
+        // Preemptively define getter/setter for fetch on all levels (especially Window.prototype) so that any assignments (e.g. global.fetch = ...) do not throw a TypeError
+        (function() {
+          let customFetch = window.fetch;
+          
+          function tryDefine(obj, prop) {
+            try {
+              Object.defineProperty(obj, prop, {
+                configurable: true,
+                enumerable: true,
+                get() { return customFetch; },
+                set(val) { customFetch = val; }
+              });
+              return true;
+            } catch (e) {
+              return false;
+            }
+          }
+
+          // In standard browser environments, fetch is inherited from Window.prototype.
+          // Defining a setter on Window.prototype intercepts any assignments (like window.fetch = ...) gracefully.
+          tryDefine(Window.prototype, 'fetch');
+          tryDefine(window, 'fetch');
+          tryDefine(globalThis, 'fetch');
+          if (typeof self !== 'undefined') {
+            tryDefine(self, 'fetch');
+          }
+        })();
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
